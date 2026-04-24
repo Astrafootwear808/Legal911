@@ -16,15 +16,15 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
   };
 
   return (
-    <section className="pt-12 md:pt-20 px-6 space-y-12 flex flex-col items-center">
+    <section className="pt-6 md:pt-10 px-6 space-y-8 flex flex-col items-center">
       {/* Brand Identity / Logo */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center gap-4 cursor-pointer group"
+        className="flex flex-col items-center gap-3 cursor-pointer group"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
-        <div className="relative h-20 md:h-32 transition-transform group-hover:scale-105 duration-500">
+        <div className="relative h-16 md:h-24 transition-transform group-hover:scale-105 duration-500">
           <img 
             src="/logo.png" 
             alt="Legal911 Logo" 
@@ -38,14 +38,14 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
           />
           <div 
             id="logo-text-fallback" 
-            className="hidden font-headline font-extrabold tracking-tighter text-3xl md:text-5xl text-primary"
+            className="hidden font-headline font-extrabold tracking-tighter text-2xl md:text-4xl text-primary"
           >
             Legal911
           </div>
         </div>
       </motion.div>
 
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-4 max-w-3xl">
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,7 +63,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
         </motion.p>
       </div>
       
-      <div className="w-full max-w-2xl space-y-6">
+      <div className="w-full max-w-2xl space-y-4">
         {/* Search Bar */}
         <motion.form 
           onSubmit={handleSearch}
