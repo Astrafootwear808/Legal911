@@ -41,7 +41,7 @@ export default function Navbar({ onHomeClick, onSavedClick, onProfileClick, lang
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <tab.icon className={`w-5 h-5 ${isActive ? 'fill-primary/10' : ''}`} />
+                <tab.icon className="w-5 h-5" />
                 <span className="font-headline text-sm font-bold tracking-wide">
                   {tab.label}
                 </span>

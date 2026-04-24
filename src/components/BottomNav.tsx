@@ -54,7 +54,7 @@ export default function BottomNav({ onHomeClick, onSavedClick, onProfileClick, l
                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
               />
             )}
-            <tab.icon className={`w-6 h-6 md:w-7 md:h-7 mb-1.5 ${isActive ? 'fill-current scale-110' : ''} transition-all`} />
+            <tab.icon className={`w-6 h-6 md:w-7 md:h-7 mb-1.5 ${isActive ? 'scale-110' : ''} transition-all`} />
             <span className="font-headline text-[9px] md:text-[11px] font-extrabold uppercase tracking-widest transition-colors">
               {t[tab.labelKey as keyof typeof t]}
             </span>
