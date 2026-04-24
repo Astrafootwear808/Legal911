@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Language, translations } from '../translations';
 import { practiceAreas } from './PracticeAreaList';
+import BookNowModal from './BookNowModal';
+import LawyerProfileModal from './LawyerProfileModal';
 
 interface CategoryDetailProps {
   categoryId: string;
@@ -16,6 +18,8 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [savedLawyers, setSavedLawyers] = useState<Set<string>>(new Set());
+  const [bookingLawyer, setBookingLawyer] = useState<any | null>(null);
+  const [profileLawyer, setProfileLawyer] = useState<any | null>(null);
   const t = translations[lang];
   const currentArea = practiceAreas.find(a => a.id === categoryId);
 
@@ -84,13 +88,9 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
           </div>
         </div>
         <div className="flex gap-2.5">
-           <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-outline-variant/50 rounded-2xl text-sm font-bold text-on-surface-variant hover:bg-slate-50 transition-all shadow-sm">
-            <Info className="w-4 h-4 text-primary" />
-            {t.guidance}
-          </button>
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all shadow-sm active:scale-95 ${showFilters ? 'bg-primary-container text-primary' : 'bg-primary text-white hover:bg-primary/90'}`}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-sm font-extrabold transition-all shadow-sm active:scale-95 ${showFilters ? 'bg-primary-container text-primary' : 'bg-primary text-white hover:bg-primary/90'}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             {t.filters}
@@ -109,11 +109,11 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
           >
             <div className="flex flex-wrap gap-2 md:gap-3 p-4 bg-surface-container/40 rounded-2xl border border-outline-variant/30">
               {filterOptions.map((filter) => (
-                <div key={filter.id} className="relative">
+                <div key={filter.id} className="relative flex-1 min-w-[140px] md:flex-none">
                   <select 
                     value={activeFilters[filter.id] || ''}
                     onChange={(e) => handleFilterClick(filter.id, e.target.value)}
-                    className={`appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all border outline-none cursor-pointer shadow-sm ${
+                    className={`appearance-none w-full flex items-center gap-2 pl-4 pr-10 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all border outline-none cursor-pointer shadow-sm ${
                       activeFilters[filter.id] 
                       ? 'bg-primary/10 border-primary/30 text-primary ring-2 ring-primary/20' 
                       : 'bg-white border-outline-variant/50 text-on-surface-variant hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
@@ -195,10 +195,16 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
 
                   
                   <div className="flex gap-2 mt-4">
-                    <button className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95">
+                    <button 
+                      onClick={() => setProfileLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
+                      className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95"
+                    >
                       {lang === 'EN' ? 'Profile' : 'Perfil'}
                     </button>
-                    <button className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95">
+                    <button 
+                      onClick={() => setBookingLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
+                      className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95"
+                    >
                       {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
                     </button>
                   </div>
@@ -284,6 +290,21 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
           </motion.div>
         )}
       </div>
+      {profileLawyer && (
+        <LawyerProfileModal
+          lawyer={profileLawyer}
+          onClose={() => setProfileLawyer(null)}
+          onBookNow={() => { setProfileLawyer(null); setBookingLawyer(profileLawyer); }}
+          lang={lang}
+        />
+      )}
+      {bookingLawyer && (
+        <BookNowModal
+          lawyer={bookingLawyer}
+          onClose={() => setBookingLawyer(null)}
+          lang={lang}
+        />
+      )}
     </div>
   );
 }

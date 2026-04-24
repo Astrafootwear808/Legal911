@@ -17,7 +17,7 @@ app.use(helmet());
 
 // 2. CORS Security (Limit origins)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : ['http://localhost:5173', 'http://localhost:3000'],
   methods: ['GET', 'POST'],
 }));
 
@@ -63,15 +63,13 @@ app.post('/api/search', async (req, res) => {
       - experience: string (e.g., "10+ years")
       - priceRange: string (e.g., "$200-500/hr")
       - language: array of strings (e.g., ["English", "Spanish"])
-      - rating: number (1.0 to 5.0)
-      - reviewCount: number
       - description: string (brief bio, max 2 sentences)
       
       Return ONLY valid JSON containing an array of objects.
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

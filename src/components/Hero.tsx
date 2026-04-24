@@ -24,7 +24,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
         className="flex flex-col items-center gap-4 cursor-pointer group"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
-        <div className="relative h-24 md:h-32 transition-transform group-hover:scale-105 duration-500">
+        <div className="relative h-20 md:h-32 transition-transform group-hover:scale-105 duration-500">
           <img 
             src="/logo.png" 
             alt="Legal911 Logo" 
@@ -38,7 +38,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
           />
           <div 
             id="logo-text-fallback" 
-            className="hidden font-headline font-extrabold tracking-tighter text-4xl md:text-5xl text-primary"
+            className="hidden font-headline font-extrabold tracking-tighter text-3xl md:text-5xl text-primary"
           >
             Legal911
           </div>
@@ -49,7 +49,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-headline text-4xl md:text-6xl font-bold text-on-surface text-center leading-[1.1] tracking-tight"
+          className="font-headline text-3xl md:text-6xl font-bold text-on-surface text-center leading-[1.2] md:leading-[1.1] tracking-tight"
         >
           {t.heroTitle} <span className="text-primary italic">{t.heroTitleAccent}</span>
         </motion.h1>
@@ -57,7 +57,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-lg md:text-xl text-on-surface-variant text-center max-w-2xl mx-auto leading-relaxed"
+          className="text-base md:text-xl text-on-surface-variant text-center max-w-2xl mx-auto leading-relaxed"
         >
           {t.heroSubtitle}
         </motion.p>

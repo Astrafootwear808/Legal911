@@ -9,8 +9,10 @@ import Hero from './components/Hero';
 import PracticeAreaList from './components/PracticeAreaList';
 import BarExamSection from './components/BarExamSection';
 import BottomNav from './components/BottomNav';
+import Navbar from './components/Navbar';
 import CategoryDetail from './components/CategoryDetail';
 import SavedLawyers from './components/SavedLawyers';
+import ProfileSection from './components/ProfileSection';
 
 import { Language, translations } from './translations';
 
@@ -23,7 +25,7 @@ export default function App() {
     }
     return 'EN';
   });
-  const [view, setView] = useState<'home' | 'saved'>('home');
+  const [view, setView] = useState<'home' | 'saved' | 'profile'>('home');
   const [isMapZoomed, setIsMapZoomed] = useState(false);
 
   const handleSelectCategory = (id: string) => {
@@ -50,6 +52,12 @@ export default function App() {
     setActiveSearch(null);
   };
 
+  const handleNavigateProfile = () => {
+    setView('profile');
+    setSelectedCategory(null);
+    setActiveSearch(null);
+  };
+
   const t = translations[lang];
 
   useEffect(() => {
@@ -66,7 +74,7 @@ export default function App() {
       {/* Language Toggle Slider - Fixed for persistence */}
       <AnimatePresence>
         {!isMapZoomed && (
-          <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
+          <div className="fixed top-4 right-4 md:top-6 md:right-6 z-[110]">
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -109,26 +117,69 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+      
+      <Navbar 
+        onHomeClick={handleBack} 
+        onSavedClick={handleNavigateSaved} 
+        onProfileClick={handleNavigateProfile} 
+        lang={lang} 
+        activeView={view} 
+      />
 
       <main className="max-w-5xl mx-auto px-4 md:px-0">
-        {view === 'saved' ? (
-          <SavedLawyers onBack={handleBack} lang={lang} />
-        ) : !selectedCategory ? (
-          <div className="animate-in fade-in duration-700 slide-in-from-bottom-4">
-            <Hero onSearch={handleSearch} lang={lang} />
-            <PracticeAreaList onSelectCategory={handleSelectCategory} lang={lang} />
-            <BarExamSection lang={lang} onZoomChange={setIsMapZoomed} />
-          </div>
-        ) : (
-          <CategoryDetail 
-            categoryId={selectedCategory} 
-            searchQuery={activeSearch}
-            onBack={handleBack} 
-            lang={lang}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {view === 'saved' ? (
+            <motion.div
+              key="saved"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SavedLawyers onBack={handleBack} lang={lang} />
+            </motion.div>
+          ) : view === 'profile' ? (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ProfileSection onBack={handleBack} lang={lang} />
+            </motion.div>
+          ) : !selectedCategory ? (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="animate-in fade-in duration-700 slide-in-from-bottom-4"
+            >
+              <Hero onSearch={handleSearch} lang={lang} />
+              <PracticeAreaList onSelectCategory={handleSelectCategory} lang={lang} />
+              <BarExamSection lang={lang} onZoomChange={setIsMapZoomed} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="detail"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <CategoryDetail 
+                categoryId={selectedCategory} 
+                searchQuery={activeSearch}
+                onBack={handleBack} 
+                lang={lang}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
-      <BottomNav onHomeClick={handleBack} onSavedClick={handleNavigateSaved} lang={lang} />
+      <BottomNav onHomeClick={handleBack} onSavedClick={handleNavigateSaved} onProfileClick={handleNavigateProfile} lang={lang} activeView={view} />
     </div>
   );
 }

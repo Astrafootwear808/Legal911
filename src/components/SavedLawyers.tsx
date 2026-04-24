@@ -1,6 +1,9 @@
-import { ArrowLeft, Bookmark, Star, MapPin, Scale } from 'lucide-react';
+import { ArrowLeft, Bookmark, Star, Scale } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useState } from 'react';
 import { Language, translations } from '../translations';
+import BookNowModal from './BookNowModal';
+import LawyerProfileModal from './LawyerProfileModal';
 
 interface SavedLawyersProps {
   onBack: () => void;
@@ -12,8 +15,6 @@ const mockFavorites = [
     id: '1',
     name: 'Sarah Jenkins',
     area: 'Family Law',
-    rating: 4.9,
-    reviews: 124,
     location: 'Downtown, NY',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
   },
@@ -21,8 +22,6 @@ const mockFavorites = [
     id: '2',
     name: 'Michael Chen',
     area: 'Corporate Law',
-    rating: 4.8,
-    reviews: 89,
     location: 'Midtown, NY',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
   }
@@ -30,6 +29,8 @@ const mockFavorites = [
 
 export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
   const t = translations[lang];
+  const [bookingLawyer, setBookingLawyer] = useState<any | null>(null);
+  const [profileLawyer, setProfileLawyer] = useState<any | null>(null);
 
   return (
     <div className="py-8 md:py-12 space-y-10 min-h-[70vh]">
@@ -70,18 +71,24 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
                       <span className="text-xs font-bold uppercase tracking-wider">{lawyer.area}</span>
                     </div>
                   </div>
-                  <button className="text-primary hover:scale-110 transition-transform">
-                    <Star className="w-5 h-5 fill-current" />
-                  </button>
+                  <div className="text-primary hover:scale-110 transition-transform">
+                    <Bookmark className="w-5 h-5 fill-current" />
+                  </div>
                 </div>
                 
 
                 
                 <div className="flex gap-2 mt-4">
-                  <button className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95">
+                  <button 
+                    onClick={() => setProfileLawyer(lawyer)}
+                    className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95"
+                  >
                     {lang === 'EN' ? 'Profile' : 'Perfil'}
                   </button>
-                  <button className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95">
+                  <button 
+                    onClick={() => setBookingLawyer(lawyer)}
+                    className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95"
+                  >
                     {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
                   </button>
                 </div>
@@ -111,6 +118,21 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
             {t.exploreBtn}
           </button>
         </motion.div>
+      )}
+      {profileLawyer && (
+        <LawyerProfileModal
+          lawyer={profileLawyer}
+          onClose={() => setProfileLawyer(null)}
+          onBookNow={() => { setProfileLawyer(null); setBookingLawyer(profileLawyer); }}
+          lang={lang}
+        />
+      )}
+      {bookingLawyer && (
+        <BookNowModal
+          lawyer={bookingLawyer}
+          onClose={() => setBookingLawyer(null)}
+          lang={lang}
+        />
       )}
     </div>
   );

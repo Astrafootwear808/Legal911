@@ -157,16 +157,17 @@ export default function PracticeAreaList({ onSelectCategory, lang }: { onSelectC
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {visibleAreas.map((area, index) => (
             <motion.a
               key={area.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
               transition={{ 
                 duration: 0.3,
-                delay: showAll ? (index * 0.05) : (index * 0.1) 
+                delay: showAll ? (index * 0.03) : 0
               }}
               href={`#${area.id}`}
               onClick={(e) => {

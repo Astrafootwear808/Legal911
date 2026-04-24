@@ -286,42 +286,41 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
           <AnimatePresence>
             {(zoomedState || position.zoom > 1) && (
               <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="absolute top-16 md:top-20 right-8 z-50 flex items-center"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-6 left-1/2 -translate-x-1/2 z-[60]"
               >
                 <button
                   onClick={handleResetZoom}
-                  className="group px-6 py-3 rounded-full bg-slate-900 text-white font-bold text-sm shadow-xl hover:bg-slate-800 transition-all flex items-center gap-2 border border-white/10 active:scale-95"
+                  className="group px-6 py-2.5 rounded-full bg-slate-900/90 backdrop-blur-md text-white font-bold text-xs shadow-2xl hover:bg-slate-800 transition-all flex items-center gap-2 border border-white/20 active:scale-95 whitespace-nowrap"
                 >
-                  <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-90" />
-                  {lang === 'EN' ? 'Back to Map' : 'Volver al Mapa'}
+                  <RotateCcw className="w-3.5 h-3.5 transition-transform group-hover:-rotate-90" />
+                  {lang === 'EN' ? 'Back to Full Map' : 'Volver al Mapa Completo'}
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Abstract Background Accents */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-[100px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-[120px] pointer-events-none" />
           
           <div 
-            className="relative w-full h-[300px] md:h-[600px] cursor-crosshair"
-            onClick={handleResetZoom}
+            className="relative w-full h-[350px] md:h-[600px] cursor-crosshair rounded-[2.5rem] overflow-hidden"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) handleResetZoom();
+            }}
           >
             <ComposableMap 
               projection="geoAlbersUsa"
-              className={`w-full h-full outline-none transition-opacity duration-300 ${isAnimating ? 'pointer-events-none' : ''}`}
+              className={`w-full h-full outline-none transition-opacity duration-300 ${isAnimating ? 'opacity-80 pointer-events-none' : 'opacity-100'}`}
             >
               <ZoomableGroup
                 zoom={position.zoom}
                 center={position.coordinates}
                 onMoveEnd={(pos) => {
-                  // Only update if not currently animating to avoid loops
-                  if (!animationRef.current) {
-                    setPosition(pos);
-                  }
+                  if (!animationRef.current) setPosition(pos);
                 }}
               >
                 <MapFeatures 
@@ -337,10 +336,10 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
             <AnimatePresence>
               {hoveredState && !zoomedState && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white text-xs py-2 px-4 rounded-full border border-white/20 shadow-2xl font-bold tracking-tight z-10 pointer-events-none"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white text-[10px] md:text-xs py-2 px-5 rounded-full border border-white/20 shadow-2xl font-bold tracking-widest z-10 pointer-events-none uppercase"
                 >
                   {STATE_NAMES[hoveredState]}
                 </motion.div>
@@ -351,23 +350,23 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
             <AnimatePresence>
               {zoomedState && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl border border-white/50 flex flex-col items-center min-w-[280px] md:min-w-[320px] max-w-[90%]"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 40 }}
+                  className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/50 flex flex-col items-center min-w-[280px] md:min-w-[340px] max-w-[92%]"
                 >
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 text-primary transform -rotate-6">
                     <GraduationCap className="w-6 h-6" />
                   </div>
-                  <h3 className="font-headline text-2xl md:text-3xl font-extrabold text-on-surface mb-1">{STATE_NAMES[zoomedState]}</h3>
-                  <p className="text-sm md:text-base text-on-surface-variant font-medium mb-6 text-center">
-                    {lang === 'EN' ? 'Official Bar Exam Directory' : 'Directorio Oficial del Examen de Abogacía'}
+                  <h3 className="font-headline text-2xl md:text-3xl font-extrabold text-on-surface mb-1 text-center">{STATE_NAMES[zoomedState]}</h3>
+                  <p className="text-[11px] md:text-sm text-on-surface-variant font-bold uppercase tracking-widest mb-6 text-center opacity-60">
+                    {lang === 'EN' ? 'Official Bar Directory' : 'Directorio del Colegio'}
                   </p>
                   <button 
                     onClick={() => handleManualSelect(zoomedState)}
-                    className="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-sm md:text-base hover:bg-primary-container shadow-lg shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-primary text-white rounded-2xl font-bold text-sm md:text-base hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-3"
                   >
-                    {lang === 'EN' ? 'Visit Official Website' : 'Visitar Sitio Oficial'}
+                    {lang === 'EN' ? 'Visit Directory' : 'Visitar Directorio'}
                     <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </motion.div>
@@ -375,23 +374,22 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
             </AnimatePresence>
           </div>
           
-          <div className="mt-8 flex flex-wrap justify-center gap-6 md:gap-12 pb-4">
-             <div className="flex items-center gap-2">
-               <div className="w-3 h-3 rounded-full bg-slate-900 border border-white/20" />
-               <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                 {lang === 'EN' ? 'States' : 'Estados'}
+          <div className="mt-10 flex flex-wrap justify-center gap-6 md:gap-16 pb-2 border-t border-outline-variant/20 pt-8">
+             <div className="flex items-center gap-3">
+               <div className="w-4 h-4 rounded-lg bg-slate-900 border border-white/20" />
+               <span className="text-[10px] md:text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                 {lang === 'EN' ? 'All States' : 'Estados'}
                </span>
              </div>
-             <div className="flex items-center gap-2">
-               <div className="w-3 h-3 rounded-full bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.5)]" />
-               <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                 {lang === 'EN' ? 'Focus / Zoomed' : 'Foco / Zoom'}
+             <div className="flex items-center gap-3">
+               <div className="w-4 h-4 rounded-lg bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />
+               <span className="text-[10px] md:text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                 {lang === 'EN' ? 'Selected' : 'Seleccionado'}
                </span>
              </div>
-             <div className="flex items-center gap-2">
-               <div className="w-2 h-4 border-l-2 border-dashed border-primary/40 mr-1" />
-               <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider italic">
-                 {lang === 'EN' ? 'Click state to view directory' : 'Haz click en el estado para ver directorio'}
+             <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10">
+               <span className="text-[9px] md:text-[11px] font-bold text-primary uppercase tracking-tighter italic">
+                 {lang === 'EN' ? 'Click state to explore' : 'Click en estado para explorar'}
                </span>
              </div>
           </div>

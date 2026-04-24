@@ -1,18 +1,28 @@
-import { Compass, Gavel, Bookmark, User } from 'lucide-react';
+import { Compass, Bookmark, User } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Language, translations } from '../translations';
 
 const tabs = [
   { id: 'discover', labelKey: 'navDiscover', icon: Compass },
-  { id: 'specialties', labelKey: 'navSpecialties', icon: Gavel },
   { id: 'saved', labelKey: 'navSaved', icon: Bookmark },
   { id: 'profile', labelKey: 'navProfile', icon: User },
 ];
 
-export default function BottomNav({ onHomeClick, onSavedClick, lang }: { onHomeClick?: () => void, onSavedClick?: () => void, lang: Language }) {
-  const [activeTab, setActiveTab] = useState('discover');
+export default function BottomNav({ onHomeClick, onSavedClick, onProfileClick, lang, activeView }: { onHomeClick?: () => void, onSavedClick?: () => void, onProfileClick?: () => void, lang: Language, activeView: string }) {
+  const [activeTab, setActiveTab] = useState(activeView === 'home' ? 'discover' : activeView);
   const t = translations[lang];
+
+  // Sync activeTab with activeView from parent
+  useEffect(() => {
+    if (activeView === 'home') {
+      if (activeTab !== 'discover') {
+        setActiveTab('discover');
+      }
+    } else {
+      setActiveTab(activeView);
+    }
+  }, [activeView]);
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 flex justify-around items-center px-4 py-4 md:py-5 pb-8 md:pb-10 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
@@ -23,11 +33,14 @@ export default function BottomNav({ onHomeClick, onSavedClick, lang }: { onHomeC
             key={tab.id}
             onClick={() => {
               setActiveTab(tab.id);
-              if ((tab.id === 'discover' || tab.id === 'specialties') && onHomeClick) {
+              if (tab.id === 'discover' && onHomeClick) {
                 onHomeClick();
               }
               if (tab.id === 'saved' && onSavedClick) {
                 onSavedClick();
+              }
+              if (tab.id === 'profile' && onProfileClick) {
+                onProfileClick();
               }
             }}
             className={`relative flex flex-col items-center justify-center px-4 py-1 transition-all active:scale-90 ${

@@ -33,7 +33,7 @@ export const translations = {
     noSavedTitle: "No favorites yet",
     noSavedDesc: "Tap the heart icon on any lawyer profile to save them here for later.",
     exploreBtn: "Explore Lawyers",
-    barTitle: "State bar directory map",
+    barTitle: "State Bar Directory Map",
     barSubtitle: "Want to find a lawyer straight from their state bar directory? Click on your state below",
     barLegend: "Official Websites",
   },
