@@ -144,13 +144,13 @@ export default function PracticeAreaList({ onSelectCategory, lang }: { onSelectC
 
   return (
     <section className="px-6 py-16 md:py-24 space-y-12">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <h2 className="font-headline text-3xl md:text-4xl font-bold text-on-surface">
           {t.browseTitle} <span className="text-secondary">{t.browseTitleAccent}</span>
         </h2>
         <button 
           onClick={() => setShowAll(!showAll)}
-          className="text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer"
+          className="text-primary font-bold hover:underline bg-transparent border-none cursor-pointer text-left md:text-right text-sm md:text-base"
         >
           {showAll ? t.showLess : t.viewAll} →
         </button>
@@ -176,7 +176,7 @@ export default function PracticeAreaList({ onSelectCategory, lang }: { onSelectC
               }}
               className="group flex items-center justify-between py-6 border-b border-outline-variant hover:bg-white/50 md:hover:px-4 md:-mx-4 rounded-xl transition-all active:scale-[0.99]"
             >
-              <div className="flex items-start md:items-center space-x-4 md:space-x-5">
+              <div className="flex items-center space-x-4 md:space-x-5">
                 <div className={`w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl ${area.colorClass} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                   <area.icon className="w-8 h-8 md:w-10 md:h-10" />
                 </div>
