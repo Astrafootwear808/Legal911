@@ -8,26 +8,11 @@ import LawyerProfileModal from './LawyerProfileModal';
 interface SavedLawyersProps {
   onBack: () => void;
   lang: Language;
+  savedLawyers: any[];
+  onToggleSave: (lawyer: any) => void;
 }
 
-const mockFavorites = [
-  {
-    id: '1',
-    name: 'Sarah Jenkins',
-    area: 'Family Law',
-    location: 'Downtown, NY',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-  },
-  {
-    id: '2',
-    name: 'Michael Chen',
-    area: 'Corporate Law',
-    location: 'Midtown, NY',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-  }
-];
-
-export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
+export default function SavedLawyers({ onBack, lang, savedLawyers, onToggleSave }: SavedLawyersProps) {
   const t = translations[lang];
   const [bookingLawyer, setBookingLawyer] = useState<any | null>(null);
   const [profileLawyer, setProfileLawyer] = useState<any | null>(null);
@@ -47,9 +32,9 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
         </h2>
       </div>
 
-      {mockFavorites.length > 0 ? (
+      {savedLawyers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...mockFavorites].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => (
+          {[...savedLawyers].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => (
             <motion.div
               key={lawyer.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -58,7 +43,7 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
               className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 hover:shadow-lg transition-all group"
             >
               <img 
-                src={lawyer.image} 
+                src={lawyer.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(lawyer.name)}&background=random&color=fff&size=150`} 
                 alt={lawyer.name}
                 className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm grayscale group-hover:grayscale-0 transition-all duration-500"
               />
@@ -68,12 +53,15 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
                     <h3 className="font-headline font-bold text-lg text-on-surface">{lawyer.name}</h3>
                     <div className="flex items-center gap-1.5 text-primary">
                       <Scale className="w-3.5 h-3.5" />
-                      <span className="text-xs font-bold uppercase tracking-wider">{lawyer.area}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider">{lawyer.area || lawyer.practiceAreas?.[0]}</span>
                     </div>
                   </div>
-                  <div className="text-primary hover:scale-110 transition-transform">
+                  <button 
+                    onClick={() => onToggleSave(lawyer)}
+                    className="text-primary hover:scale-110 transition-transform"
+                  >
                     <Bookmark className="w-5 h-5 fill-current" />
-                  </div>
+                  </button>
                 </div>
                 
 
@@ -83,13 +71,13 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
                     onClick={() => setProfileLawyer(lawyer)}
                     className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95"
                   >
-                    {lang === 'EN' ? 'Profile' : 'Perfil'}
+                    {t.profile}
                   </button>
                   <button 
                     onClick={() => setBookingLawyer(lawyer)}
                     className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95"
                   >
-                    {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
+                    {t.bookNow}
                   </button>
                 </div>
               </div>

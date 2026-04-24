@@ -11,6 +11,10 @@ interface LawyerProfileModalProps {
     image?: string;
     description?: string;
     practiceAreas?: string[];
+    location?: string;
+    experience?: string;
+    languages?: string[];
+    priceRange?: string;
   };
   onClose: () => void;
   onBookNow: () => void;
@@ -23,7 +27,7 @@ const badges = [
 ];
 
 export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }: LawyerProfileModalProps) {
-  const isEN = lang === 'EN';
+  const t = translations[lang];
 
   const initials = lawyer.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const areas = lawyer.practiceAreas?.length ? lawyer.practiceAreas : [lawyer.area];
@@ -79,8 +83,8 @@ export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }:
                   <span className="text-sm font-semibold truncate">{areas[0]}</span>
                 </div>
                 <div className="flex items-center gap-3 mt-2 opacity-80 text-xs">
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />New York, NY</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />12 yrs exp.</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{lawyer.location || 'New York, NY'}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{lawyer.experience || '12 yrs exp.'}</span>
                 </div>
               </div>
             </div>
@@ -88,8 +92,8 @@ export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }:
             {/* Stats bar */}
             <div className="relative flex border-t border-white/20 text-white">
               {[
-                { label: isEN ? 'Experience' : 'Experiencia', value: '12 yrs' },
-                { label: isEN ? 'Practice' : 'Práctica', value: areas[0].split(' ')[0] },
+                { label: t.experience, value: lawyer.experience?.split(' ')[0] || '12' },
+                { label: t.practiceArea, value: areas[0].split(' ')[0] },
               ].map((stat, i, arr) => (
                 <div
                   key={stat.label}
@@ -108,30 +112,25 @@ export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }:
                 {/* Profile Header Info */}
                 <div className="space-y-1">
                   <h3 className="font-headline font-bold text-lg text-on-surface">{lawyer.name}</h3>
-                  <p className="text-sm font-semibold text-primary">{lawyer.area}</p>
-                  <p className="text-sm text-on-surface-variant"><span className="font-bold">{isEN ? 'Languages:' : 'Idiomas:'}</span> Spanish</p>
+                  <p className="text-sm font-semibold text-primary">{lawyer.area || areas[0]}</p>
+                  <p className="text-sm text-on-surface-variant"><span className="font-bold">{t.languages}:</span> {lawyer.languages?.join(', ') || 'English, Spanish'}</p>
                 </div>
 
                 {/* Bio */}
                 <div className="space-y-2">
-                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{isEN ? 'About' : 'Acerca de'}</h3>
+                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{t.about}</h3>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    {lawyer.description || (isEN 
-                      ? `${lawyer.name} is a dedicated attorney helping individuals, families, and businesses navigate complex legal challenges with clarity and confidence. Focusing on client-centered representation, ${lawyer.name} delivers efficient, results-driven solutions in ${lawyer.area} and related fields. Combining deep legal knowledge with a practical, human approach, ${lawyer.name} leverages technology to make the legal process faster and easier for every client.`
-                      : `${lawyer.name} es un abogado dedicado que ayuda a individuos, familias y empresas a navegar desafíos legales complejos con claridad y confianza. Con un enfoque en la representación centrada en el cliente, ${lawyer.name} ofrece soluciones eficientes y orientadas a resultados en ${lawyer.area} y campos relacionados.`)}
+                    {lawyer.description || (lang === 'EN' 
+                      ? `${lawyer.name} is a dedicated attorney helping individuals, families, and businesses navigate complex legal challenges with clarity and confidence. Focusing on client-centered representation, ${lawyer.name} delivers efficient, results-driven solutions in ${lawyer.area || areas[0]} and related fields.`
+                      : `${lawyer.name} es un abogado dedicado que ayuda a individuos, familias y empresas a navegar desafíos legales complejos con claridad y confianza. Con un enfoque en la representación centrada en el cliente, ${lawyer.name} ofrece soluciones eficientes y orientadas a resultados en ${lawyer.area || areas[0]} y campos relacionados.`)}
                   </p>
                 </div>
 
                 {/* Practice Areas */}
                 <div className="space-y-2">
-                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{isEN ? 'Practice Areas' : 'Áreas de Práctica'}</h3>
+                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{t.practiceAreas}</h3>
                   <div className="flex flex-wrap gap-2">
-                    {(lawyer.practiceAreas?.length ? lawyer.practiceAreas : [
-                      'Real Estate Lawyer', 'Family Lawyer', 'Probate & Estate Lawyer', 'Personal Injury Lawyer',
-                      'Criminal Defense Lawyer', 'Immigration Lawyer', 'Business Lawyer', 'Employment & Labor Lawyer',
-                      'Bankruptcy Lawyer', 'Tax Lawyer', 'Civil Rights Lawyer', 'Intellectual Property Lawyer',
-                      'Medical Malpractice Lawyer', 'Social Security & Disability Lawyer', 'Environmental Lawyer'
-                    ]).map(area => (
+                    {areas.map(area => (
                       <span key={area} className="px-3 py-1.5 bg-primary/[0.08] text-primary rounded-lg text-xs font-bold">
                         {area}
                       </span>
@@ -141,26 +140,26 @@ export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }:
 
                 {/* Consultation Details */}
                 <div className="space-y-3 p-5 bg-surface-container/30 rounded-2xl border border-outline-variant/30">
-                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{isEN ? 'Consultation Details' : 'Detalles de la Consulta'}</h3>
+                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{t.consultationDetails}</h3>
                   <div className="space-y-2">
-                    <p className="text-sm text-on-surface-variant"><span className="font-bold">{isEN ? 'Consultation Type:' : 'Tipo de Consulta:'}</span></p>
+                    <p className="text-sm text-on-surface-variant"><span className="font-bold">{t.consultationType}:</span></p>
                     <div className="flex items-center gap-2 text-green-600 font-bold text-sm">
                       <div className="w-2 h-2 bg-green-500 rounded-full" />
-                      {isEN ? 'Rate: Free Appointment' : 'Tarifa: Cita Gratuita'}
+                      {lawyer.priceRange ? `${t.priceRange}: ${lawyer.priceRange}` : t.rateFree}
                     </div>
-                    <p className="text-[10px] text-on-surface-variant italic mt-2 italic">* {isEN ? 'Please read consultation guidelines before booking' : 'Por favor lea las pautas de consulta antes de reservar'}</p>
+                    <p className="text-[10px] text-on-surface-variant italic mt-2 italic">* {lang === 'EN' ? 'Please read consultation guidelines before booking' : 'Por favor lea las pautas de consulta antes de reservar'}</p>
                   </div>
                 </div>
 
                 {/* Consultation Guidelines */}
                 <div className="space-y-3">
-                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{isEN ? 'Consultation Guidelines' : 'Pautas de Consulta'}</h3>
+                  <h3 className="font-headline font-bold text-on-surface text-sm uppercase tracking-wider opacity-60">{t.consultationGuidelines}</h3>
                   <ul className="space-y-2">
                     {[
-                      isEN ? 'Do not call the office regarding consultations' : 'No llame a la oficina con respecto a las consultas',
-                      isEN ? 'The office only answers calls from existing clients, courts, and government agencies' : 'La oficina solo responde llamadas de clientes existentes, tribunales y agencias gubernamentales',
-                      isEN ? 'All questions must be asked via the paymylawyer platform' : 'Todas las preguntas deben hacerse a través de la plataforma paymylawyer',
-                      isEN ? 'Follow-up questions will require a new consultation appointment' : 'Las preguntas de seguimiento requerirán una nueva cita de consulta'
+                      t.guideline1,
+                      t.guideline2,
+                      t.guideline3,
+                      t.guideline4
                     ].map((guideline, i) => (
                       <li key={i} className="flex gap-3 text-sm text-on-surface-variant">
                         <div className="w-1.5 h-1.5 bg-primary/30 rounded-full mt-2 flex-shrink-0" />
@@ -178,13 +177,13 @@ export default function LawyerProfileModal({ lawyer, onClose, onBookNow, lang }:
               onClick={onClose}
               className="flex-1 py-3 border border-outline-variant rounded-xl font-bold text-on-surface-variant hover:bg-surface-container transition-all active:scale-95 text-sm"
             >
-              {isEN ? 'Close' : 'Cerrar'}
+              {t.close}
             </button>
             <button
               onClick={() => { onBookNow(); }}
               className="flex-[2] py-3 bg-primary text-white rounded-xl font-bold shadow-md hover:bg-primary/90 transition-all active:scale-95 text-sm"
             >
-              {isEN ? 'Book Consultation' : 'Reservar Consulta'}
+              {t.bookConsultation}
             </button>
           </div>
         </motion.div>

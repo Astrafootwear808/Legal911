@@ -13,6 +13,7 @@ import Navbar from './components/Navbar';
 import CategoryDetail from './components/CategoryDetail';
 import SavedLawyers from './components/SavedLawyers';
 import ProfileSection from './components/ProfileSection';
+import HandshakeLink from './components/HandshakeLink';
 
 import { Language, translations } from './translations';
 
@@ -27,6 +28,13 @@ export default function App() {
   });
   const [view, setView] = useState<'home' | 'saved' | 'profile'>('home');
   const [isMapZoomed, setIsMapZoomed] = useState(false);
+  const [savedLawyers, setSavedLawyers] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('savedLawyers');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
 
   const handleSelectCategory = (id: string) => {
     setSelectedCategory(id);
@@ -56,6 +64,17 @@ export default function App() {
     setView('profile');
     setSelectedCategory(null);
     setActiveSearch(null);
+  };
+
+  const toggleSaveLawyer = (lawyer: any) => {
+    setSavedLawyers(prev => {
+      const isSaved = prev.some(l => l.id === lawyer.id);
+      const next = isSaved 
+        ? prev.filter(l => l.id !== lawyer.id)
+        : [...prev, lawyer];
+      localStorage.setItem('savedLawyers', JSON.stringify(next));
+      return next;
+    });
   };
 
   const t = translations[lang];
@@ -136,7 +155,12 @@ export default function App() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <SavedLawyers onBack={handleBack} lang={lang} />
+              <SavedLawyers 
+                onBack={handleBack} 
+                lang={lang} 
+                savedLawyers={savedLawyers}
+                onToggleSave={toggleSaveLawyer}
+              />
             </motion.div>
           ) : view === 'profile' ? (
             <motion.div
@@ -174,11 +198,14 @@ export default function App() {
                 searchQuery={activeSearch}
                 onBack={handleBack} 
                 lang={lang}
+                savedLawyers={savedLawyers}
+                onToggleSave={toggleSaveLawyer}
               />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
+      <HandshakeLink lang={lang} />
       <BottomNav onHomeClick={handleBack} onSavedClick={handleNavigateSaved} onProfileClick={handleNavigateProfile} lang={lang} activeView={view} />
     </div>
   );

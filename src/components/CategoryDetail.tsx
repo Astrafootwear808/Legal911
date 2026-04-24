@@ -11,13 +11,14 @@ interface CategoryDetailProps {
   searchQuery?: string | null;
   onBack: () => void;
   lang: Language;
+  savedLawyers: any[];
+  onToggleSave: (lawyer: any) => void;
 }
 
-export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }: CategoryDetailProps) {
+export default function CategoryDetail({ categoryId, searchQuery, onBack, lang, savedLawyers, onToggleSave }: CategoryDetailProps) {
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
-  const [savedLawyers, setSavedLawyers] = useState<Set<string>>(new Set());
   const [bookingLawyer, setBookingLawyer] = useState<any | null>(null);
   const [profileLawyer, setProfileLawyer] = useState<any | null>(null);
   const t = translations[lang];
@@ -78,12 +79,12 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
             </h2>
             {currentArea?.example && (
               <p className="text-sm md:text-lg text-primary font-medium">
-                <span className="opacity-50 italic mr-1">{lang === 'EN' ? 'Example:' : 'Ejemplo:'}</span>
+                <span className="opacity-50 italic mr-1">{t.example}:</span>
                 {currentArea.example[lang]}
               </p>
             )}
             <div className="flex items-center gap-2 text-on-surface-variant/70 text-xs md:text-sm font-medium">
-               <span>{loading ? '...' : lawyers.length} {lang === 'EN' ? 'professionals found' : 'profesionales encontrados'}</span>
+               <span>{loading ? '...' : lawyers.length} {t.professionalsFound}</span>
             </div>
           </div>
         </div>
@@ -156,61 +157,61 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
           </div>
         ) : lawyers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-            {[...lawyers].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => (
-              <motion.div
-                key={lawyer.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 hover:shadow-xl transition-all group relative"
-              >
-                <img 
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(lawyer.name)}&background=random&color=fff&size=150`}
-                  alt={lawyer.name}
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500 flex-shrink-0"
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex justify-between items-start pr-8">
-                    <div>
-                      <h3 className="font-headline font-bold text-lg text-on-surface">{lawyer.name}</h3>
-                      <div className="flex items-center gap-1.5 text-primary">
-                        <span className="text-xs font-bold uppercase tracking-wider">{lawyer.practiceAreas?.[0] || 'Law'}</span>
+            {[...lawyers].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => {
+              const isSaved = savedLawyers.some(l => l.id === lawyer.id);
+              return (
+                <motion.div
+                  key={lawyer.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 hover:shadow-xl transition-all group relative"
+                >
+                  <img 
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(lawyer.name)}&background=random&color=fff&size=150`}
+                    alt={lawyer.name}
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500 flex-shrink-0"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-start pr-8">
+                      <div>
+                        <h3 className="font-headline font-bold text-lg text-on-surface">{lawyer.name}</h3>
+                        <div className="flex items-center gap-1.5 text-primary">
+                          <span className="text-xs font-bold uppercase tracking-wider">{lawyer.practiceAreas?.[0] || 'Law'}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const newSet = new Set(savedLawyers);
-                      if (newSet.has(lawyer.id)) newSet.delete(lawyer.id);
-                      else newSet.add(lawyer.id);
-                      setSavedLawyers(newSet);
-                    }}
-                    className="absolute top-4 right-4 p-2 bg-surface-container/50 hover:bg-surface-container rounded-full transition-colors z-10"
-                  >
-                    <Heart className={`w-5 h-5 transition-colors ${savedLawyers.has(lawyer.id) ? 'fill-red-500 text-red-500' : 'text-outline hover:text-red-400'}`} />
-                  </button>
-                  
+                    
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSave(lawyer);
+                      }}
+                      className="absolute top-4 right-4 p-2 bg-surface-container/50 hover:bg-surface-container rounded-full transition-colors z-10"
+                    >
+                      <Heart className={`w-5 h-5 transition-colors ${isSaved ? 'fill-red-500 text-red-500' : 'text-outline hover:text-red-400'}`} />
+                    </button>
+                    
 
-                  
-                  <div className="flex gap-2 mt-4">
-                    <button 
-                      onClick={() => setProfileLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
-                      className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95"
-                    >
-                      {lang === 'EN' ? 'Profile' : 'Perfil'}
-                    </button>
-                    <button 
-                      onClick={() => setBookingLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
-                      className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95"
-                    >
-                      {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
-                    </button>
+                    
+                    <div className="flex gap-2 mt-4">
+                      <button 
+                        onClick={() => setProfileLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
+                        className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95"
+                      >
+                        {t.profile}
+                      </button>
+                      <button 
+                        onClick={() => setBookingLawyer({ ...lawyer, area: lawyer.practiceAreas?.[0] || 'Law' })}
+                        className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95"
+                      >
+                        {t.bookNow}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
           <motion.div 
@@ -245,14 +246,14 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
                 onClick={onBack}
                 className="px-8 py-3 border border-outline-variant text-on-surface-variant rounded-xl font-bold hover:bg-surface-container transition-all"
               >
-                {lang === 'EN' ? 'Go Back' : 'Regresar'}
+                {t.goBack}
               </button>
             </div>
 
             {/* Example Template Layout */}
             <div className="w-full max-w-2xl mt-12 pt-12 border-t border-outline-variant/40 text-left">
               <h4 className="text-xs md:text-sm font-bold text-outline uppercase tracking-widest mb-6 text-center">
-                {lang === 'EN' ? 'Example Profile Layout' : 'Diseño de Perfil de Ejemplo'}
+                {t.exampleProfileLayout}
               </h4>
               <div className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 opacity-60 grayscale-[30%] pointer-events-none relative shadow-sm">
                  <img 
@@ -263,7 +264,7 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
                 <div className="flex-1 space-y-2">
                   <div className="flex justify-between items-start pr-8">
                     <div>
-                      <h3 className="font-headline font-bold text-lg text-on-surface">Jane Doe (Example)</h3>
+                      <h3 className="font-headline font-bold text-lg text-on-surface">Jane Doe ({t.example})</h3>
                       <div className="flex items-center gap-1.5 text-primary">
                         <span className="text-xs font-bold uppercase tracking-wider">{currentArea?.title[lang] || 'Lawyer'}</span>
                       </div>
@@ -278,10 +279,10 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
                   
                   <div className="flex gap-2 mt-4">
                     <div className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold text-center">
-                      {lang === 'EN' ? 'Profile' : 'Perfil'}
+                      {t.profile}
                     </div>
                     <div className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold text-center shadow-sm">
-                      {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
+                      {t.bookNow}
                     </div>
                   </div>
                 </div>
