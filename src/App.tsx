@@ -17,7 +17,12 @@ import { Language, translations } from './translations';
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeSearch, setActiveSearch] = useState<string | null>(null);
-  const [lang, setLang] = useState<Language>('EN');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('preferredLang') as Language) || 'EN';
+    }
+    return 'EN';
+  });
   const [view, setView] = useState<'home' | 'saved'>('home');
   const [isMapZoomed, setIsMapZoomed] = useState(false);
 
@@ -52,6 +57,10 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [view, selectedCategory, activeSearch]);
 
+  useEffect(() => {
+    localStorage.setItem('preferredLang', lang);
+  }, [lang]);
+
   return (
     <div className="min-h-screen pb-48 md:pb-56 lg:pb-16 bg-transparent overflow-x-hidden selection:bg-primary/10 relative">
       {/* Language Toggle Slider - Fixed for persistence */}
@@ -62,13 +71,14 @@ export default function App() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              onClick={() => setLang(lang === 'EN' ? 'ES' : 'EN')}
-              className="relative flex items-center bg-white/90 backdrop-blur-xl border border-outline-variant/40 rounded-2xl p-1 shadow-lg shadow-black/10 cursor-pointer h-10 w-24 md:h-12 md:w-32 group select-none transition-all hover:shadow-xl"
+              className="relative flex items-center bg-white/90 backdrop-blur-xl border border-outline-variant/40 rounded-2xl p-1 shadow-lg shadow-black/10 h-10 w-24 md:h-12 md:w-32 group select-none transition-all hover:shadow-xl"
+              aria-label="Language selector"
+              role="group"
             >
               {/* Slider Background */}
               <motion.div
                 layout
-                className="absolute inset-y-1 w-[46%] bg-primary rounded-xl shadow-md z-0"
+                className="absolute inset-y-1 w-[46%] bg-primary rounded-xl shadow-md z-0 pointer-events-none"
                 initial={false}
                 animate={{ 
                   left: lang === 'EN' ? '4px' : '52%',
@@ -77,16 +87,24 @@ export default function App() {
               />
               
               {/* EN Label */}
-              <div className={`relative z-10 flex-1 flex items-center justify-center gap-1 transition-colors duration-300 ${lang === 'EN' ? 'text-white' : 'text-outline/80 group-hover:text-on-surface'}`}>
+              <button 
+                onClick={() => setLang('EN')}
+                aria-pressed={lang === 'EN'}
+                className={`cursor-pointer border-none bg-transparent m-0 p-0 relative z-10 flex-1 flex items-center justify-center gap-1 transition-colors duration-300 ${lang === 'EN' ? 'text-white' : 'text-outline/80 group-hover:text-on-surface'}`}
+              >
                 <span className="text-sm md:text-base leading-none">🇺🇸</span>
                 <span className="text-[10px] md:text-xs font-extrabold tracking-wider">EN</span>
-              </div>
+              </button>
               
               {/* ES Label */}
-              <div className={`relative z-10 flex-1 flex items-center justify-center gap-1 transition-colors duration-300 ${lang === 'ES' ? 'text-white' : 'text-outline/80 group-hover:text-on-surface'}`}>
+              <button 
+                onClick={() => setLang('ES')}
+                aria-pressed={lang === 'ES'}
+                className={`cursor-pointer border-none bg-transparent m-0 p-0 relative z-10 flex-1 flex items-center justify-center gap-1 transition-colors duration-300 ${lang === 'ES' ? 'text-white' : 'text-outline/80 group-hover:text-on-surface'}`}
+              >
                 <span className="text-sm md:text-base leading-none">🇪🇸</span>
                 <span className="text-[10px] md:text-xs font-extrabold tracking-wider">ES</span>
-              </div>
+              </button>
             </motion.div>
           </div>
         )}

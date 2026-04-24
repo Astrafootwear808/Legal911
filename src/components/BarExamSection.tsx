@@ -76,11 +76,100 @@ const STATE_NAMES: Record<string, string> = {
   SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming"
 };
 
+const MapFeatures = React.memo(({ hoveredState, zoomedState, setHoveredState, handleStateClick }: any) => {
+  return (
+    <>
+      <Geographies geography={geoUrl}>
+        {({ geographies }) =>
+          geographies.map((geo) => {
+            const abbr = FIPS_TO_ABBR[geo.id];
+            const isHovered = hoveredState === abbr;
+            const isZoomed = zoomedState === abbr;
+
+            return (
+              <Geography
+                key={geo.rsmKey}
+                geography={geo}
+                onMouseEnter={() => setHoveredState(abbr)}
+                onMouseLeave={() => setHoveredState(null)}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleStateClick(geo);
+                }}
+                style={{
+                  default: { 
+                    fill: isZoomed ? "#3b82f6" : "#1e293b", 
+                    stroke: "#FFFFFF", 
+                    strokeWidth: 0.5, 
+                    outline: "none",
+                    transition: "all 250ms ease"
+                  },
+                  hover: { 
+                    fill: "#2563eb", 
+                    stroke: "#FFFFFF", 
+                    strokeWidth: 1, 
+                    outline: "none",
+                    cursor: "pointer"
+                  },
+                  pressed: { 
+                    fill: "#1d4ed8", 
+                    outline: "none" 
+                  },
+                }}
+              />
+            );
+          })
+        }
+      </Geographies>
+
+      <Geographies geography={geoUrl}>
+        {({ geographies }) =>
+          geographies.map((geo) => {
+            const abbr = FIPS_TO_ABBR[geo.id];
+            if (!abbr) return null;
+            const centroid = geoCentroid(geo);
+            const isFocused = hoveredState === abbr || zoomedState === abbr;
+            
+            const isSmallState = ['RI', 'DE', 'CT', 'MD', 'MA', 'NJ', 'NH', 'VT'].includes(abbr);
+            const baseFontSize = isSmallState ? "8px" : "12px";
+            const focusedFontSize = isSmallState ? "10px" : "15px";
+            
+            return (
+              <Marker key={`label-${geo.rsmKey}`} coordinates={centroid as [number, number]}>
+                <motion.text
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  initial={false}
+                  animate={{
+                    fontSize: isFocused ? focusedFontSize : baseFontSize,
+                    opacity: isFocused ? 1 : 0.8,
+                    scale: isFocused ? 1.1 : 1,
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  className="pointer-events-none fill-white select-none"
+                  style={{ 
+                    textShadow: "0 2px 5px rgba(0,0,0,1)",
+                    fontWeight: 900,
+                    fontFamily: "Inter, sans-serif"
+                  }}
+                >
+                  {abbr}
+                </motion.text>
+              </Marker>
+            );
+          })
+        }
+      </Geographies>
+    </>
+  );
+});
+
 export default function BarExamSection({ lang, onZoomChange }: { lang: Language, onZoomChange?: (isZoomed: boolean) => void }) {
   const t = translations[lang];
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [zoomedState, setZoomedState] = useState<string | null>(null);
   const [position, setPosition] = useState({ coordinates: [-96, 37] as [number, number], zoom: 1 });
+  const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = React.useRef<any>(null);
 
   // Smoothly animate the map position
@@ -95,9 +184,12 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
     const startCoords = position.coordinates || [-96, 37];
     const startZoom = position.zoom || 1;
 
+    setIsAnimating(true);
+    setHoveredState(null); // Clear tooltip to avoid rendering overhead
+
     animationRef.current = animate(0, 1, {
-      duration: 1,
-      ease: "easeInOut",
+      duration: 0.8, // Slightly faster, 800ms
+      ease: [0.32, 0.72, 0, 1], // Smooth custom cubic-bezier
       onUpdate: (latest) => {
         setPosition({
           coordinates: [
@@ -109,6 +201,7 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
       },
       onComplete: () => {
         animationRef.current = null;
+        setIsAnimating(false);
       }
     });
   };
@@ -191,12 +284,12 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
         <div className="relative bg-white/40 backdrop-blur-md border border-outline-variant/30 rounded-[3rem] p-4 md:p-8 overflow-hidden group shadow-2xl shadow-black/[0.03]">
           {/* Zoom Controls Overlay */}
           <AnimatePresence>
-            {zoomedState && (
+            {(zoomedState || position.zoom > 1) && (
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="absolute top-16 md:top-20 right-8 z-50 flex items-center gap-4"
+                className="absolute top-16 md:top-20 right-8 z-50 flex items-center"
               >
                 <button
                   onClick={handleResetZoom}
@@ -205,10 +298,6 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
                   <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-90" />
                   {lang === 'EN' ? 'Back to Map' : 'Volver al Mapa'}
                 </button>
-                <div className="hidden md:flex flex-col">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{lang === 'EN' ? 'Focusing on' : 'Enfocando en'}</span>
-                  <span className="text-lg font-extrabold text-slate-900 leading-tight">{STATE_NAMES[zoomedState]}</span>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -217,10 +306,13 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-[100px] pointer-events-none" />
           
-          <div className="relative w-full h-[300px] md:h-[600px]">
+          <div 
+            className="relative w-full h-[300px] md:h-[600px] cursor-crosshair"
+            onClick={handleResetZoom}
+          >
             <ComposableMap 
               projection="geoAlbersUsa"
-              className="w-full h-full outline-none"
+              className={`w-full h-full outline-none transition-opacity duration-300 ${isAnimating ? 'pointer-events-none' : ''}`}
             >
               <ZoomableGroup
                 zoom={position.zoom}
@@ -232,85 +324,12 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
                   }
                 }}
               >
-                <Geographies geography={geoUrl}>
-                  {({ geographies }) =>
-                    geographies.map((geo) => {
-                      const abbr = FIPS_TO_ABBR[geo.id];
-                      const isHovered = hoveredState === abbr;
-                      const isZoomed = zoomedState === abbr;
-
-                      return (
-                        <Geography
-                          key={geo.rsmKey}
-                          geography={geo}
-                          onMouseEnter={() => setHoveredState(abbr)}
-                          onMouseLeave={() => setHoveredState(null)}
-                          onClick={() => handleStateClick(geo)}
-                          style={{
-                            default: { 
-                              fill: isZoomed ? "#3b82f6" : "#1e293b", 
-                              stroke: "#FFFFFF", 
-                              strokeWidth: 0.5, 
-                              outline: "none",
-                              transition: "all 250ms ease"
-                            },
-                            hover: { 
-                              fill: "#2563eb", 
-                              stroke: "#FFFFFF", 
-                              strokeWidth: 1, 
-                              outline: "none",
-                              cursor: "pointer"
-                            },
-                            pressed: { 
-                              fill: "#1d4ed8", 
-                              outline: "none" 
-                            },
-                          }}
-                        />
-                      );
-                    })
-                  }
-                </Geographies>
-
-                <Geographies geography={geoUrl}>
-                  {({ geographies }) =>
-                    geographies.map((geo) => {
-                      const abbr = FIPS_TO_ABBR[geo.id];
-                      if (!abbr) return null;
-                      const centroid = geoCentroid(geo);
-                      const isFocused = hoveredState === abbr || zoomedState === abbr;
-                      
-                      // Define states that are geographically small and need smaller labels
-                      const isSmallState = ['RI', 'DE', 'CT', 'MD', 'MA', 'NJ', 'NH', 'VT'].includes(abbr);
-                      const baseFontSize = isSmallState ? "8px" : "12px";
-                      const focusedFontSize = isSmallState ? "10px" : "15px";
-                      
-                      return (
-                        <Marker key={`label-${geo.rsmKey}`} coordinates={centroid as [number, number]}>
-                          <motion.text
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            initial={false}
-                            animate={{
-                              fontSize: isFocused ? focusedFontSize : baseFontSize,
-                              opacity: isFocused ? 1 : 0.8,
-                              scale: isFocused ? 1.1 : 1,
-                            }}
-                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                            className="pointer-events-none fill-white select-none"
-                            style={{ 
-                              textShadow: "0 2px 5px rgba(0,0,0,1)",
-                              fontWeight: 900,
-                              fontFamily: "Inter, sans-serif"
-                            }}
-                          >
-                            {abbr}
-                          </motion.text>
-                        </Marker>
-                      );
-                    })
-                  }
-                </Geographies>
+                <MapFeatures 
+                  hoveredState={hoveredState}
+                  zoomedState={zoomedState}
+                  setHoveredState={setHoveredState}
+                  handleStateClick={handleStateClick}
+                />
               </ZoomableGroup>
             </ComposableMap>
             
@@ -321,9 +340,36 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white text-xs py-2 px-4 rounded-full border border-white/20 shadow-2xl font-bold tracking-tight z-10"
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white text-xs py-2 px-4 rounded-full border border-white/20 shadow-2xl font-bold tracking-tight z-10 pointer-events-none"
                 >
                   {STATE_NAMES[hoveredState]}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Zoom Action Card */}
+            <AnimatePresence>
+              {zoomedState && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl border border-white/50 flex flex-col items-center min-w-[280px] md:min-w-[320px] max-w-[90%]"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-headline text-2xl md:text-3xl font-extrabold text-on-surface mb-1">{STATE_NAMES[zoomedState]}</h3>
+                  <p className="text-sm md:text-base text-on-surface-variant font-medium mb-6 text-center">
+                    {lang === 'EN' ? 'Official Bar Exam Directory' : 'Directorio Oficial del Examen de Abogacía'}
+                  </p>
+                  <button 
+                    onClick={() => handleManualSelect(zoomedState)}
+                    className="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-sm md:text-base hover:bg-primary-container shadow-lg shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {lang === 'EN' ? 'Visit Official Website' : 'Visitar Sitio Oficial'}
+                    <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -345,7 +391,7 @@ export default function BarExamSection({ lang, onZoomChange }: { lang: Language,
              <div className="flex items-center gap-2">
                <div className="w-2 h-4 border-l-2 border-dashed border-primary/40 mr-1" />
                <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider italic">
-                 {lang === 'EN' ? 'Click state to zoom, click again for info' : 'Click para zoom, otro para info'}
+                 {lang === 'EN' ? 'Click state to view directory' : 'Haz click en el estado para ver directorio'}
                </span>
              </div>
           </div>

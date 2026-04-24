@@ -1,5 +1,5 @@
-import { ChevronDown, SlidersHorizontal, ArrowLeft, Info } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ChevronDown, SlidersHorizontal, ArrowLeft, Info, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Language, translations } from '../translations';
 import { practiceAreas } from './PracticeAreaList';
@@ -14,11 +14,13 @@ interface CategoryDetailProps {
 export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }: CategoryDetailProps) {
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [savedLawyers, setSavedLawyers] = useState<Set<string>>(new Set());
   const t = translations[lang];
   const currentArea = practiceAreas.find(a => a.id === categoryId);
 
   const filterOptions = [
-    { id: 'practice', label: t.practiceArea, options: ['Family', 'Corporate', 'Criminal', 'Injury'] },
+    { id: 'practice', label: t.practiceArea, options: practiceAreas.map(a => a.title[lang]) },
     { id: 'experience', label: t.experience, options: ['1-5 years', '5-10 years', '10+ years'] },
     { id: 'price', label: t.priceRange, options: ['$100-200', '$200-500', '$500+'] },
   ];
@@ -34,10 +36,26 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
     setActiveFilters({});
   };
 
+  const [lawyers, setLawyers] = useState<any[]>([]);
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, [categoryId, searchQuery]);
+    setLoading(true);
+    fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: searchQuery, categoryId: categoryId, filters: activeFilters })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setLawyers(data.lawyers || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch lawyers:", err);
+        setLawyers([]);
+        setLoading(false);
+      });
+  }, [categoryId, searchQuery, activeFilters]);
 
   return (
     <div className="py-6 md:py-12 space-y-8 md:space-y-12 min-h-[60vh]">
@@ -61,7 +79,7 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
               </p>
             )}
             <div className="flex items-center gap-2 text-on-surface-variant/70 text-xs md:text-sm font-medium">
-               <span>{loading ? '...' : '0'} {lang === 'EN' ? 'professionals found' : 'profesionales encontrados'}</span>
+               <span>{loading ? '...' : lawyers.length} {lang === 'EN' ? 'professionals found' : 'profesionales encontrados'}</span>
             </div>
           </div>
         </div>
@@ -70,7 +88,10 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
             <Info className="w-4 h-4 text-primary" />
             {t.guidance}
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-extrabold hover:bg-primary-container transition-all shadow-lg active:scale-95">
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-extrabold transition-all shadow-sm active:scale-95 ${showFilters ? 'bg-primary-container text-primary' : 'bg-primary text-white hover:bg-primary/90'}`}
+          >
             <SlidersHorizontal className="w-4 h-4" />
             {t.filters}
           </button>
@@ -78,35 +99,46 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
       </div>
 
       {/* Filters Strip */}
-      <div className="flex flex-wrap gap-2 md:gap-3 p-1 bg-surface-container/30 rounded-2xl">
-        {filterOptions.map((filter) => (
-          <div key={filter.id} className="relative">
-            <select 
-              value={activeFilters[filter.id] || ''}
-              onChange={(e) => handleFilterClick(filter.id, e.target.value)}
-              className={`appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all border outline-none cursor-pointer ${
-                activeFilters[filter.id] 
-                ? 'bg-primary/10 border-primary/20 text-primary' 
-                : 'bg-white border-outline-variant/50 text-on-surface-variant hover:border-primary/30'
-              }`}
-            >
-              <option value="">{filter.label}</option>
-              {filter.options.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-outline/50" />
-          </div>
-        ))}
-        {Object.values(activeFilters).some(v => v) && (
-          <button 
-            onClick={clearFilters}
-            className="px-4 py-2 text-xs font-bold text-primary hover:bg-primary/5 rounded-xl transition-all"
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, y: -10 }}
+            animate={{ height: 'auto', opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -10 }}
+            className="overflow-hidden"
           >
-            {t.clearFilters}
-          </button>
+            <div className="flex flex-wrap gap-2 md:gap-3 p-4 bg-surface-container/40 rounded-2xl border border-outline-variant/30">
+              {filterOptions.map((filter) => (
+                <div key={filter.id} className="relative">
+                  <select 
+                    value={activeFilters[filter.id] || ''}
+                    onChange={(e) => handleFilterClick(filter.id, e.target.value)}
+                    className={`appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all border outline-none cursor-pointer shadow-sm ${
+                      activeFilters[filter.id] 
+                      ? 'bg-primary/10 border-primary/30 text-primary ring-2 ring-primary/20' 
+                      : 'bg-white border-outline-variant/50 text-on-surface-variant hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                    }`}
+                  >
+                    <option value="">{filter.label}</option>
+                    {filter.options.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none transition-colors ${activeFilters[filter.id] ? 'text-primary' : 'text-outline/50'}`} />
+                </div>
+              ))}
+              {Object.values(activeFilters).some(v => v) && (
+                <button 
+                  onClick={clearFilters}
+                  className="px-5 py-2.5 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all ml-auto md:ml-0"
+                >
+                  {t.clearFilters}
+                </button>
+              )}
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* Results Area */}
       <div className="relative pt-4 md:pt-12 text-center space-y-8">
@@ -122,11 +154,63 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
             </div>
             <p className="text-on-surface-variant font-bold text-sm tracking-wide animate-pulse uppercase">{t.searchingMatch}</p>
           </div>
+        ) : lawyers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            {[...lawyers].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => (
+              <motion.div
+                key={lawyer.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 hover:shadow-xl transition-all group relative"
+              >
+                <img 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(lawyer.name)}&background=random&color=fff&size=150`}
+                  alt={lawyer.name}
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500 flex-shrink-0"
+                />
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between items-start pr-8">
+                    <div>
+                      <h3 className="font-headline font-bold text-lg text-on-surface">{lawyer.name}</h3>
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <span className="text-xs font-bold uppercase tracking-wider">{lawyer.practiceAreas?.[0] || 'Law'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newSet = new Set(savedLawyers);
+                      if (newSet.has(lawyer.id)) newSet.delete(lawyer.id);
+                      else newSet.add(lawyer.id);
+                      setSavedLawyers(newSet);
+                    }}
+                    className="absolute top-4 right-4 p-2 bg-surface-container/50 hover:bg-surface-container rounded-full transition-colors z-10"
+                  >
+                    <Heart className={`w-5 h-5 transition-colors ${savedLawyers.has(lawyer.id) ? 'fill-red-500 text-red-500' : 'text-outline hover:text-red-400'}`} />
+                  </button>
+                  
+
+                  
+                  <div className="flex gap-2 mt-4">
+                    <button className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95">
+                      {lang === 'EN' ? 'Profile' : 'Perfil'}
+                    </button>
+                    <button className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95">
+                      {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center space-y-8 py-16 md:py-32"
+            className="flex flex-col items-center justify-center space-y-8 py-8 md:py-16"
           >
             <div className="relative">
               <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center text-primary/20">
@@ -157,6 +241,45 @@ export default function CategoryDetail({ categoryId, searchQuery, onBack, lang }
               >
                 {lang === 'EN' ? 'Go Back' : 'Regresar'}
               </button>
+            </div>
+
+            {/* Example Template Layout */}
+            <div className="w-full max-w-2xl mt-12 pt-12 border-t border-outline-variant/40 text-left">
+              <h4 className="text-xs md:text-sm font-bold text-outline uppercase tracking-widest mb-6 text-center">
+                {lang === 'EN' ? 'Example Profile Layout' : 'Diseño de Perfil de Ejemplo'}
+              </h4>
+              <div className="bg-white border border-outline-variant rounded-2xl p-5 flex gap-4 opacity-60 grayscale-[30%] pointer-events-none relative shadow-sm">
+                 <img 
+                  src={`https://ui-avatars.com/api/?name=Jane+Doe&background=random&color=fff&size=150`}
+                  alt="Template Lawyer"
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-xl object-cover shadow-sm flex-shrink-0"
+                />
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between items-start pr-8">
+                    <div>
+                      <h3 className="font-headline font-bold text-lg text-on-surface">Jane Doe (Example)</h3>
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <span className="text-xs font-bold uppercase tracking-wider">{currentArea?.title[lang] || 'Lawyer'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="absolute top-4 right-4 p-2 bg-surface-container/50 rounded-full z-10">
+                    <Heart className="w-5 h-5 text-outline" />
+                  </div>
+                  
+
+                  
+                  <div className="flex gap-2 mt-4">
+                    <div className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold text-center">
+                      {lang === 'EN' ? 'Profile' : 'Perfil'}
+                    </div>
+                    <div className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold text-center shadow-sm">
+                      {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

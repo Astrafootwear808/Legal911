@@ -86,7 +86,7 @@ export default function Hero({ onSearch, lang }: { onSearch: (query: string, typ
             type="submit"
             className="absolute right-1.5 top-1.5 bottom-1.5 bg-primary text-white px-4 md:px-6 rounded-lg md:rounded-xl text-sm md:text-base font-bold hover:bg-primary-container transition-all active:scale-95 whitespace-nowrap"
           >
-            {t.searchBtn}
+            {searchType === 'lawyer' ? t.searchLawyerBtn : t.searchFirmBtn}
           </button>
         </motion.form>
 

@@ -48,7 +48,7 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
 
       {mockFavorites.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mockFavorites.map((lawyer, index) => (
+          {[...mockFavorites].sort((a, b) => a.name.localeCompare(b.name)).map((lawyer, index) => (
             <motion.div
               key={lawyer.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -75,20 +75,16 @@ export default function SavedLawyers({ onBack, lang }: SavedLawyersProps) {
                   </button>
                 </div>
                 
-                <div className="flex items-center gap-4 text-xs md:text-sm font-semibold text-on-surface-variant">
-                  <div className="flex items-center gap-1.5 transition-colors">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span>{lawyer.rating} ({lawyer.reviews})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 transition-colors">
-                    <MapPin className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                    <span>{lawyer.location}</span>
-                  </div>
-                </div>
+
                 
-                <button className="w-full mt-2 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-all">
-                  {lang === 'EN' ? 'View Profile' : 'Ver Perfil'}
-                </button>
+                <div className="flex gap-2 mt-4">
+                  <button className="flex-1 py-2 bg-surface-container text-primary rounded-lg text-xs font-bold hover:bg-primary/10 transition-all active:scale-95">
+                    {lang === 'EN' ? 'Profile' : 'Perfil'}
+                  </button>
+                  <button className="flex-1 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-container shadow-sm transition-all active:scale-95">
+                    {lang === 'EN' ? 'Book Now' : 'Reservar Ahora'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
